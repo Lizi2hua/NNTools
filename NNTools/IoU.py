@@ -7,16 +7,16 @@ def iou(box1,box2):
     assert size1==4 and size2==4,\
         "coordinates size must be 4,but got boxsize1{},boxsize2{}.format(size1,size2)"
     assert box1[0]<=box1[2] and box1[1]<=box1[3] and box2[0]<=box2[2] and box2[1]<=box2[3],\
-        "top_xtop_y's value must smaller than or equals to botton_xbotton_y's value"
+        "top_x/top_y's value must smaller than or equals to botton_x/botton_y's value"
 
     #compute intersection area
     inter_top_left_x=max(box1[0],box2[0])
     inter_top_left_y=max(box1[1],box2[1])
     inter_botton_right_x=min(box1[2],box2[2])
     inter_botton_right_y=min(box1[3],box2[3])
-    # judge box1 and box2 whehter have intersection
-    if inter_top_left_x >= inter_botton_right_x\
-        and inter_top_left_y >=inter_botton_right_y:
+    # judge box1 and box2 whether have intersection
+    if inter_top_left_y>=inter_botton_right_y \
+        or inter_top_left_x>=inter_botton_right_x:
         inter_area=0
     else:
         inter_area=(inter_botton_right_x-inter_top_left_x)*(inter_botton_right_y-inter_top_left_y)
