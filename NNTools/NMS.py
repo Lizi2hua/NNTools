@@ -49,21 +49,18 @@ def NMS(boxes,thresh=0.2,is_Min=False):
        while boxes_sorted.shape[0] >=1:
            #取第一个框
               a_box=boxes_sorted[0]
-              print("a_box",a_box)
+
            #取剩下的框
               b_boxes=boxes_sorted[1:]
            #第一个框必定是保留的
               buffer.append(a_box)
-
            #比较IoU，大于阈值的框去掉，用bool索引
               IOU=iou(a_box,b_boxes,is_Min)
-              print('iou',IOU)
               mask=np.where(IOU<thresh)
-              print('mask',mask)
+
            #用bool索引得到得array来替代上一次迭代保留的框的array数据
               boxes_sorted=b_boxes[mask]
-              print(boxes_sorted)
-              print("----------")
+
 
        # if boxes_sorted.shape[0]>0:
        #        buffer.append(boxes_sorted[0])#boxes_sorted=[[]]的形状
@@ -84,17 +81,17 @@ def NMS(boxes,thresh=0.2,is_Min=False):
 # print(b)
 
 
-boxes=np.array([[0.97,133,80,225,265],
-       [0.89,157,69,261,238],
-       [0.85,148,132,238,282],
-       [0.70,105,112,195,303],
-       [0.69,88,50,187,193],
-       [0.70,316,209,378,312],
-       [0.50,298,173,348,340],
-       [0.90,490,67,563,251],
-       [0.70,446,46,526,181],
-       [0.79,533,41,622,175],
-       [0.85,429,87,619,216]])
-box=NMS(boxes,thresh=0.1)
-print(box)
+# boxes=np.array([[0.97,133,80,225,265],
+#        [0.89,157,69,261,238],
+#        [0.85,148,132,238,282],
+#        [0.70,105,112,195,303],
+#        [0.69,88,50,187,193],
+#        [0.70,316,209,378,312],
+#        [0.50,298,173,348,340],
+#        [0.90,490,67,563,251],
+#        [0.70,446,46,526,181],
+#        [0.79,533,41,622,175],
+#        [0.85,429,87,619,216]])
+# box=NMS(boxes,thresh=0.1)
+# print(box)
 
