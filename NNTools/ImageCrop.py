@@ -7,12 +7,13 @@ from tqdm import tqdm
 from  draw_rectangle import *
 from IoU import  *
 import time
+import random
 
 #配置信息
-anno_file=r"C:\Users\Administrator\Desktop\test_data\label"
-img_file=r"C:\Users\Administrator\Desktop\test_data\img"
-save_path=r"C:\Users\Administrator\Desktop\test_data"
-label_txt=r'C:\Users\Administrator\Desktop\test_data\label.txt'
+# anno_file=r"C:\Users\Administrator\Desktop\gened_data\label"
+img_file=r"C:\Users\Administrator\Desktop\gened_data\img_celeba"
+save_path=r"C:\Users\Administrator\Desktop\gened_data"
+label_txt=r'C:\Users\Administrator\Desktop\gened_data\list_bbox_celeba.txt'
 # anno_file=r"C:\Users\李梓桦\Desktop\test_data\label"
 # img_file=r"C:\Users\李梓桦\Desktop\test_data\img"
 # save_path=r"C:\Users\李梓桦\Desktop\test_data"
@@ -28,7 +29,7 @@ for size in face_size:
 #生成图片
 for size in face_size:
     # 裁剪的是正方形人脸，这样缩放时人脸的变形小
-    print("generate {}*{} size imgae".format(size,size))
+    print("generating {}*{} size imgae".format(size,size))
     #创建正例，负例，part人脸文件夹
     pos_save_dir=os.path.join(save_path,str(size),"positive")
     part_save_dir=os.path.join(save_path,str(size),"part")
@@ -52,6 +53,7 @@ for size in face_size:
         neg_anno_file=open(neg_anno_file,"w")
 
         for line in tqdm(open(label_txt),desc="希望图片没事",ncols=10):
+
             try:
                 strs=line.split()
                 img_path=strs[0]
@@ -59,14 +61,25 @@ for size in face_size:
 
                 with Image.open(img_path) as img:
                     img_w,img_h=img.size
-                    topx=int(strs[1])
-                    topy=int(strs[2])
-                    bottonx=int(strs[3])
-                    bottony=int(strs[4])
-                    w=bottonx-topx
-                    h=bottony-topy
+                    #这行代码是[左上角x,左上角y,右下角x,右下角y]
+                    # topx=int(strs[1])
+                    # topy=int(strs[2])
+                    # bottonx=int(strs[3])
+                    # bottony=int(strs[4])
+                    # w=bottonx-topx
+                    # h=bottony-topy
                     # rect=[1.0,topx,topy,bottonx,bottony]
                     # draw_rect(img_path,[rect])
+
+                    #这行代码是celeba去除前两行得标注信息
+                    topx = float(strs[1].strip()) # 取2nd个值去除两边的空格，再转车float型
+                    topy = float(strs[2].strip())
+                    w = float(strs[3].strip())
+                    h = float(strs[4].strip())
+                    bottonx = float(topx + w)
+                    bottony = float(topy + h)
+
+
 
                     if max(w,h)<40 \
                             or topx<0 or topy<0 or w<0 or h<0:
@@ -79,8 +92,11 @@ for size in face_size:
                     # 生成部分人脸和人脸的图片
 
                     for _ in range(6):
-                        w_=np.random.randint(-w*0.26,w*0.26)#横向随机偏移0.2w
-                        h_=np.random.randint(-h*0.26,h*0.26) #纵向随机偏移0.2h
+                         #直接使用np.random.randint似乎有bug
+
+                        w_=np.random.randint(-w*0.25,w*0.26)#横向随机偏移0.2w
+                        h_=np.random.randint(-h*0.25,h*0.26) #纵向随机偏移0.2h
+
                         cx_=cx+w_
                         cy_=cy+h_
                         #生成与偏移后的中心点的偏移值，使用该偏移值作为框的宽高（w=h)
@@ -132,21 +148,25 @@ for size in face_size:
                         #time.sleep(0.002)
                     #负样本生成
                     for i in range(6):#数量一般和上面一样
-                        offset_len=np.random.randint(int(min(size,min(w,h)/2)),np.ceil(max(size,min(w,h)/2)))# 偏移量
-                        x1_=np.random.randint(min(0,w-offset_len),max(0,w-offset_len))#生成左上角的坐标,生成的patch都在左上角
-                        y1_=np.random.randint(min(0,h-offset_len),max(0,h-offset_len))
+
+                        offset_len=np.random.randint(size,min(img_w,img_h)/2)# 偏移量
+                        x1_=np.random.randint(0,img_w-offset_len)#生成左上角的坐标,生成的patch都在左上角
+                        y1_=np.random.randint(0,img_h-offset_len)
                         x1_=max(0,x1_)
                         y1_=max(0,y1_)
+                        crop_box=np.array([x1_,y1_,x1_+offset_len,y1_+offset_len])
 
-                        x2_=np.random.randint(min(img_w,w+offset_len),max(img_w,w+offset_len))#生成左上角的坐标，使得左上角坐标落在图片下部分
-                        y2_=np.random.randint(min(img_h,h+offset_len),max(img_h,h+offset_len))
-                        #有越界
-
-                        x_=np.random.choice([x1_,x2_])
-                        y_=np.random.choice([x2_,y2_])
-
-                        crop_box=np.array([x_,y_,min(img_w,x_+offset_len),min(img_h,y_+offset_len)])
-                        # rect=[1.0,x_,y_,min(img_w,x_+offset_len),min(img_h,y_+offset_len)]
+                        # x2_=np.random.randint(min(img_w,bottonx+offset_len),max(img_w,bottonx+offset_len))#生成左上角的坐标，使得左上角坐标落在图片下部分
+                        # y2_=np.random.randint(min(img_h,bottony+offset_len),max(img_h,bottony+offset_len))
+                        # offset=np.random.randint(0.75*size,size)
+                        # xx2_=min(img_w,bottonx+offset)
+                        # yy2_=min(img_h,bottony+offset_len)
+                        # crop_box2=[x2_,y2_,xx2_,yy2_]
+                        #
+                        # #有越界
+                        # crop_boxes=[crop_box1,crop_box2]
+                        # crop_box=np.random.choice(crop_boxes)
+                        # rect=[1.0,crop_box[0],crop_box[1],crop_box[2],crop_box[3]]
                         # draw_rect(img_path,[rect])
 
                         if iou(crop_box,np.array(boxes))<0.29:
