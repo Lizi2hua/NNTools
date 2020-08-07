@@ -11,7 +11,7 @@ iu=iou(a,b)
 a=np.array([ 533. ,   41. ,  622.  , 175.])
 b=np.array([[ 490   ,67  , 563 ,  251. ]])
 IOU=iou(a,b)
-print(IOU)
+# print(IOU)
 path="test_img.jpg"
 boxes=np.array([[0.97,133,80,225,265],
        [0.89,157,69,261,238],
@@ -34,3 +34,6 @@ boxes=np.array([[0.97,133,80,225,265],
 # b=np.array([1,2,3,4])
 # c=np.minimum(a,b)
 # print(c)
+for i in range(100):
+       a=np.random.randint(0,2)
+       print(a)
